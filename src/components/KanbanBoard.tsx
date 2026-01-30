@@ -8,7 +8,8 @@ import {
     doc,
     deleteDoc,
     Timestamp,
-    orderBy
+    orderBy,
+    serverTimestamp
 } from 'firebase/firestore';
 import { format, startOfWeek, addDays, isSameDay } from 'date-fns';
 import { Sun, Moon, X, Plus, ChevronLeft, ChevronRight } from 'lucide-react';
@@ -87,6 +88,11 @@ const KanbanBoard: React.FC = () => {
                 });
             });
             setEvents(eventsArr);
+        }, (error) => {
+            console.error("Firestore error:", error);
+            if (error.code === 'permission-denied') {
+                console.warn("Please check your Firestore Rules in the Firebase Console (Settings > Rules). Set them to 'allow read, write: if true;' for personal projects.");
+            }
         });
         return () => unsubscribe();
     }, []);
@@ -133,7 +139,7 @@ const KanbanBoard: React.FC = () => {
                 time: newEventTime,
                 start: Timestamp.fromDate(eventStart),
                 end: Timestamp.fromDate(eventEnd),
-                createdAt: new Date()
+                createdAt: serverTimestamp()
             });
             closeModal();
         }

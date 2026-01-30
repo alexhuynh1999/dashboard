@@ -8,7 +8,8 @@ import {
     doc,
     updateDoc,
     deleteDoc,
-    orderBy
+    orderBy,
+    serverTimestamp
 } from 'firebase/firestore';
 
 interface Todo {
@@ -29,6 +30,11 @@ const TodoList: React.FC = () => {
                 todosArr.push({ id: doc.id, ...doc.data() } as Todo);
             });
             setTodos(todosArr);
+        }, (error) => {
+            console.error("Firestore error:", error);
+            if (error.code === 'permission-denied') {
+                console.warn("Please check your Firestore Rules in the Firebase Console (Settings > Rules). Set them to 'allow read, write: if true;' for personal projects.");
+            }
         });
         return () => unsubscribe();
     }, []);
@@ -40,7 +46,7 @@ const TodoList: React.FC = () => {
         await addDoc(collection(db, "todos"), {
             text: inputValue,
             completed: false,
-            createdAt: new Date()
+            createdAt: serverTimestamp()
         });
         setInputValue('');
     };
